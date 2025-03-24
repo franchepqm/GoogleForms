@@ -1,0 +1,54 @@
+function enviarCorreoAutomatizado(e) {
+  if (!e || !e.response) {
+    Logger.log("❌ Error: El evento no contiene datos de respuesta.");
+    return;
+  }
+
+  const respuestas = e.response.getItemResponses();
+  let emailUsuario = '';
+  let mensaje = 'Nueva inscripción recibida:\n\n';
+
+  // Recorrer las respuestas para obtener el email y generar el mensaje
+  respuestas.forEach(respuesta => {
+    const pregunta = respuesta.getItem().getTitle();
+    const valor = respuesta.getResponse();
+
+    // Detectar estrictamente el campo "Correo electronico"
+    if (pregunta === "Correo electronico") {
+      emailUsuario = valor.trim();
+      Logger.log(`📧 Correo detectado: ${emailUsuario}`);
+    }
+
+    // Agregar todas las respuestas al mensaje
+    mensaje += `${pregunta}: ${valor}\n`;
+  });
+
+  // Verificar si se detectó un correo válido
+  if (emailUsuario) {
+    try {
+      GmailApp.sendEmail(
+        emailUsuario,
+        "Gracias por tu respuesta",
+        "Hola, gracias por completar nuestro formulario. Pronto nos pondremos en contacto contigo."
+      );
+      Logger.log(`✅ Correo enviado correctamente a: ${emailUsuario}`);
+    } catch (error) {
+      Logger.log(`❌ Error al enviar correo al usuario: ${error}`);
+    }
+  } else {
+    Logger.log("❗ No se detectó ningún correo electrónico en la respuesta.");
+  }
+
+  // Enviar correo a tu equipo con los datos del formulario
+  const correoEquipo = "tuemail@gmail.com";  // Reemplaza con tu correo
+  try {
+    GmailApp.sendEmail(
+      correoEquipo,
+      "📩 Nueva inscripción en el formulario",
+      mensaje
+    );
+    Logger.log(`✅ Correo de notificación enviado a tu equipo: ${correoEquipo}`);
+  } catch (error) {
+    Logger.log(`❌ Error al enviar correo a tu equipo: ${error}`);
+  }
+}
